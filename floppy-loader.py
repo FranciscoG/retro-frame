@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import glob
 import time
-from lib import buttons
+import buttons
 import constants
 
 if not os.path.exists(constants.PHOTOS_DIR):
