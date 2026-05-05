@@ -25,7 +25,7 @@
   - Mount the floppy disk
   - Delete old images from shared folder
   - Copy new images (jpeg/png/tiff, whatever image files the Sony Mavica FD supports) from floppy to shared folder
-  - Unmount the floppy (can we eject it?)
+  - Unmount the floppy
   - Delete lock file
 
 ## Daemon 2 — Slideshow

@@ -44,7 +44,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ## Setting up to work with the display
 
-The creators of the Pimoroni Inky display have also developed a python libray to work with the display. You can find it on [github](https://github.com/pimoroni/inky) and follow the instructions on how to set it up.
+The creators of the Pimoroni Inky display have also developed a python libray for it. You can find it on [github](https://github.com/pimoroni/inky) and follow the instructions on how to set it up.
 
 Being that I'm using a Pi Zero W, I needed to do some extra steps that I found in [this github issue](https://github.com/pimoroni/inky/issues/220#issuecomment-3393634874):
 
