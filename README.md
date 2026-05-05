@@ -113,6 +113,7 @@ User=pi-frame
 WorkingDirectory=/home/pi-frame/retro-frame
 ExecStart=/home/pi-frame/retro-frame/floppy-loader.py
 Restart=on-failure
+Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target
