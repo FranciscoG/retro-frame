@@ -71,3 +71,65 @@ source ~/.virtualenvs/pimoroni/bin/activate
 ```
 
 [source](https://github.com/pimoroni/inky/issues/220#issuecomment-3393634874)
+
+## Setting up the floppy daemon
+
+### Prevent the need for password
+
+If you run `python3 floppy-loader.py` and test it out, you'll notice that it will ask you for your Pi's password in order to mount the USB floppy drive. That's no fun so we need to fix it so we don't need the password for that.
+
+To do that, we need to add a `polkit rule`, replace `pi-frame` with your Pi's user name:
+
+```sh
+sudo tee /etc/polkit-1/rules.d/10-udisks-floppy.rules > /dev/null <<'EOF'
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+          action.id == "org.freedesktop.udisks2.filesystem-mount-other-seat" ||
+          action.id == "org.freedesktop.udisks2.filesystem-unmount-others") &&
+        subject.user == "pi-frame") {
+        return polkit.Result.YES;
+    }
+});
+EOF
+
+# confirm
+cat /etc/polkit-1/rules.d/10-udisks-floppy.rules
+```
+
+Test it by running the script again, it should mount without a password now. 
+
+### Add the service
+
+Replace "pi-frame" with your user name:
+```sh
+sudo tee /etc/systemd/system/floppy-loader.service > /dev/null <<'EOF'
+[Unit]
+Description=Floppy Loader Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=pi-frame
+WorkingDirectory=/home/pi-frame/retro-frame
+ExecStart=/home/pi-frame/retro-frame/floppy-loader.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# confirm
+cat /etc/systemd/system/floppy-loader.service
+```
+
+Then:
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable --now floppy-loader.service
+sudo systemctl status floppy-loader.service
+```
+
+Watch logs with:
+```sh
+journalctl -u floppy-loader.service -f
+```
