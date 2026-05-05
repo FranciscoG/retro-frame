@@ -60,11 +60,13 @@ def delete_old_images():
 def copy_new_images(source, destination=constants.PHOTOS_DIR):
     try:
         # mavica saves images to the root of the floppy, all as jpeg
-        jpeg_files = glob.glob(os.path.join(source, "*.jpg"))
-        if not jpeg_files:
+        files = []
+        for ext in ("*.jpg", "*.jpeg"):
+            files.extend(glob.glob(os.path.join(source, ext), case_sensitive=False))
+        if not files:
             print("No JPEG files found on the floppy drive.")
             return False
-        for file in jpeg_files:
+        for file in files:
             print(f"Copying {file} to {destination}")
             shutil.copy(file, destination)
         return True
@@ -130,4 +132,8 @@ def onButtonPress(label):
 # Start with a clean slate by ensuring the lock file is removed before we begin
 delete_lock_file()
 
-buttons.begin(onButtonPress)
+print("Waiting for button presses...")
+try:
+    buttons.begin(onButtonPress)
+except KeyboardInterrupt:
+    print("\nShutting down...")
