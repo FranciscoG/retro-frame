@@ -41,3 +41,33 @@ Then reload:
 ```sh
 sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
+
+## Setting up to work with the display
+
+The creators of the Pimoroni Inky display have also developed a python libray to work with the display. You can find it on [github](https://github.com/pimoroni/inky) and follow the instructions on how to set it up.
+
+Being that I'm using a Pi Zero W, I needed to do some extra steps that I found in [this github issue](https://github.com/pimoroni/inky/issues/220#issuecomment-3393634874):
+
+```sh
+sudo apt update && sudo apt upgrade -y
+# note, I added libopenblas0 to this list because it was necessary in the end
+sudo apt-get install git python3-pandas python3-numpy libopenblas0
+git clone https://github.com/pimoroni/inky.git
+cd inky/
+./install.sh
+
+# It might ask you this:
+# "This script should be run in a virtual Python environment."
+# "Would you like us to create and/or use a default one? [y/N]"
+# choose Yes
+# I also chose to installing examples and any other question it asked me
+
+sudo reboot
+```
+
+Then start the python virtual environment
+```sh
+source ~/.virtualenvs/pimoroni/bin/activate
+```
+
+[source](https://github.com/pimoroni/inky/issues/220#issuecomment-3393634874)
