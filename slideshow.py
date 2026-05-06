@@ -3,10 +3,36 @@
 from pathlib import Path
 import time
 import constants
-from PIL import Image
+import utils
+from PIL import Image, ImageDraw, ImageFont
+from font_fredoka_one import FredokaOne
 from inky.auto import auto
 
 inky = auto()
+
+
+def default_image():
+    inky_display = auto(ask_user=True, verbose=True)
+
+    # Create new PIL image with a white background
+    image = Image.new(
+        "P", (inky_display.width, inky_display.height), inky_display.WHITE
+    )
+    draw = ImageDraw.Draw(image)
+
+    font = ImageFont.truetype(FredokaOne, 72)
+
+    # draw some shapes
+    draw.rectangle((50, 50, 200, 200), fill=inky_display.YELLOW)  # Rectangle
+    draw.ellipse((150, 150, 300, 300), fill=inky_display.RED)  # Circle (ellipse)
+    draw.line((0, 0, 400, 400), fill=inky_display.BLUE, width=10)  # Diagonal line
+
+    # draw some text
+    draw.text((0, 0), "Retro Frame", inky_display.BLACK, font)
+
+    inky_display.set_image(image)
+    inky_display.show()
+
 
 def load_image(file):
     try:
@@ -17,8 +43,10 @@ def load_image(file):
     except Exception as e:
         print(f"Error loading image {file}: {e}")
 
+
 total_images = 0
 current_image = -1
+
 
 def get_next_image():
     global current_image
@@ -26,25 +54,23 @@ def get_next_image():
     current_image = current_image + 1
 
     # need to refresh the image list just in case
-    image_list = sorted([
-        f
-        for f in Path(constants.PHOTOS_DIR).iterdir()
-        if f.suffix.lower() in (".jpg", ".jpeg")
-    ])
+    image_list = sorted(
+        utils.get_files_with_extensions(constants.PHOTOS_DIR, (".jpg", ".jpeg"))
+    )
     total_images = len(image_list)
 
     if total_images == 0:
         current_image = -1
         print("No images found, displaying default image")
-        # TODO: I need a default image, haven't decided on one yet
-        # load_image("default.jpg")
+        default_image()
         return
 
     if current_image >= total_images:
         current_image = 0
-    
+
     # get current image
     load_image(image_list[current_image])
+
 
 # Runs forever on a loop
 # - Check for lock file
@@ -56,6 +82,7 @@ def get_next_image():
 #     - Loop back to next image
 #     - If shared folder is empty, display default image
 
+
 def main_loop():
     while True:
         if Path(constants.LOCK_FILE).exists():
@@ -65,4 +92,10 @@ def main_loop():
             get_next_image()
             time.sleep(60)
 
-main_loop()
+
+try:
+    main_loop()
+except KeyboardInterrupt:
+    print("Exiting...")
+except Exception as e:
+    print(f"Slideshow Error: {e}")

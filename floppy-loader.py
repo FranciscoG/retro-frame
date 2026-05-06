@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 import buttons
 import constants
+import utils
 
 if not os.path.exists(constants.PHOTOS_DIR):
     os.makedirs(constants.PHOTOS_DIR)
@@ -61,7 +62,7 @@ def delete_old_images():
 def copy_new_images(source, destination=constants.PHOTOS_DIR):
     try:
         # mavica saves images to the root of the floppy, all as jpeg
-        files = [f for f in Path(source).iterdir() if f.suffix.lower() in (".jpg", ".jpeg")]
+        files = utils.get_files_with_extensions(source, (".jpg", ".jpeg"))
         if not files:
             print("No JPEG files found on the floppy drive.")
             return False
