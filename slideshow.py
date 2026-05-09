@@ -13,6 +13,7 @@ from inky.auto import auto
 inky = auto()
 default_image_shown = False
 
+print([a for a in dir(inky) if a.isupper()])
 
 def draw_default_image():
     global default_image_shown
@@ -35,7 +36,7 @@ def draw_default_image():
             sun_cx + sun_radius,
             sun_cy + sun_radius,
         ),
-        fill=inky.ORANGE,
+        fill=inky.YELLOW,
     )
 
     # Carve horizontal bars out of the sun's lower half (the synthwave look)
@@ -66,7 +67,7 @@ def draw_default_image():
         draw.line((0, y, width, y), fill=inky.RED, width=1)
 
     # Bright horizon line on top of everything
-    draw.line((0, horizon_y, width, horizon_y), fill=inky.YELLOW, width=2)
+    draw.line((0, horizon_y, width, horizon_y), fill=inky.WHITE, width=2)
 
     inky.set_image(image)
     inky.show()
