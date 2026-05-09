@@ -100,16 +100,16 @@ Test it by running the script again, it should mount without a password now.
 
 Replace "pi-frame" with your user name:
 ```sh
-sudo tee /etc/systemd/system/floppy-loader.service > /dev/null <<'EOF'
+sudo tee /etc/systemd/system/retro-frame.service > /dev/null <<'EOF'
 [Unit]
-Description=Floppy Loader Daemon
+Description=Retro Frame Daemon
 After=network.target
 
 [Service]
 Type=simple
 User=pi-frame
 WorkingDirectory=/home/pi-frame/retro-frame
-ExecStart=/home/pi-frame/retro-frame/floppy-loader.py
+ExecStart=/home/pi-frame/retro-frame/main.py
 Restart=on-failure
 Environment=PYTHONUNBUFFERED=1
 
@@ -118,17 +118,43 @@ WantedBy=multi-user.target
 EOF
 
 # confirm
-cat /etc/systemd/system/floppy-loader.service
+cat /etc/systemd/system/retro-frame.service
 ```
 
 Then:
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl enable --now floppy-loader.service
-sudo systemctl status floppy-loader.service
+sudo systemctl enable --now retro-frame.service
+sudo systemctl status retro-frame.service
 ```
 
 Watch logs with:
 ```sh
-journalctl -u floppy-loader.service -f
+journalctl -u retro-frame.service -f
+```
+
+## Stopping the service
+
+```sh
+sudo systemctl stop retro-frame.service
+sudo systemctl disable retro-frame.service
+sudo rm /etc/systemd/system/retro-frame.service
+sudo systemctl daemon-reload
+```
+
+What each does:
+- **stop** — kills the running process now.
+- **disable** — removes the symlink that auto-starts it on boot. Without this it'd come back at next reboot.
+- **rm** — deletes the unit file itself.
+- **daemon-reload** — tells systemd to forget about it.
+
+Optional cleanup if it ever ended up in a "failed" state:
+```sh
+sudo systemctl reset-failed
+```
+
+Confirm it's gone:
+```sh
+systemctl status retro-frame.service
+# should say: Unit retro-frame.service could not be found.
 ```
