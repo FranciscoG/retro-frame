@@ -60,7 +60,7 @@ cd inky/
 # "This script should be run in a virtual Python environment."
 # "Would you like us to create and/or use a default one? [y/N]"
 # choose Yes
-# I also chose to installing examples and any other question it asked me
+# I chose Yes for every subsequent question like installing the examples, etc
 
 sudo reboot
 ```
@@ -70,15 +70,13 @@ Then start the python virtual environment
 source ~/.virtualenvs/pimoroni/bin/activate
 ```
 
-[source](https://github.com/pimoroni/inky/issues/220#issuecomment-3393634874)
-
-## Setting up the floppy daemon
+## Setting up the daemon
 
 ### Prevent the need for password
 
-If you run `python3 floppy-loader.py` and test it out, you'll notice that it will ask you for your Pi's password in order to mount the USB floppy drive. That's no fun so we need to fix it so we don't need the password for that.
+When running the program and testing out the `floppy_loader.py`, you'll notice that it will ask you for your Pi's password in order to mount the USB floppy drive. That's no fun so we need to fix it so we don't need the password for that.
 
-To do that, we need to add a `polkit rule`, replace `pi-frame` with your Pi's user name:
+To do that, we need to add a `polkit rule`. In the code below make sure to replace `pi-frame` with your Pi's user name:
 
 ```sh
 sudo tee /etc/polkit-1/rules.d/10-udisks-floppy.rules > /dev/null <<'EOF'
