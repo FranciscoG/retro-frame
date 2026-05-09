@@ -3,52 +3,69 @@
 ## Hardware
 
 - Raspberry Pi Zero WH running `Raspbian GNU/Linux 13 (trixie, debian 13.4)`
-- Pimoroni Inky Impression 7.3" display (HAT, connects via GPIO)
+- Pimoroni Inky Impression 7.3" display (Spectra 6 variant — 6 colors, no orange)
 - USB floppy drive enclosure
 - Power supply
 
-**Shared folder** — `/home/pi/photos/` as the communication channel between the two daemons
-
-**Lock file** — `/tmp/floppy.lock` to pause the slideshow during disk loading
-
 ## Software
 
-- Python
+- Python (in a virtualenv at `~/.virtualenvs/pimoroni/`)
 - https://github.com/pimoroni/inky
 
-## Daemon 1 — Floppy Loader
+**Shared folder** — `/home/pi-frame/photos/` is where images live and where the slideshow reads from
 
-- Sits idle, doing nothing, making no noise
-- Triggered by a button press (Button A on the Inky Impression)
-- On button press:
-  - Create lock file
-  - Mount the floppy disk
-  - Delete old images from shared folder
-  - Copy new images (jpeg/png/tiff, whatever image files the Sony Mavica FD supports) from floppy to shared folder
-  - Unmount the floppy
-  - Delete lock file
+**Lock file** — `/tmp/floppy.lock` signals that a floppy load is in progress so the slideshow shows a loading screen instead of cycling
 
-## Daemon 2 — Slideshow
+## Architecture
 
-- Runs forever on a loop
-- Check for lock file
-  - if present, sleep 5 seconds and check again
-  - else:
-    - Load next image from shared folder
-    - Display it on the Inky Impression
-    - Wait 60 seconds
-    - Loop back to next image
-    - If shared folder is empty, display default image
+A single long-running program (`main.py`) plus a one-shot helper script (`floppy_loader.py`).
+
+- `main.py` runs the slideshow on the main thread and a button listener on a daemon thread. 
+- When a button is pressed, the button thread fires a callback. 
+  - Button A spawns `floppy_loader.py` as a detached subprocess so the slideshow keeps running.
+
+```
+main.py
+├── main thread     → slideshow loop (reads photos, drives display)
+└── daemon thread   → button listener (gpiod)
+                          ├── Button A → subprocess.Popen(./floppy_loader.py)
+                          └── Button B → slideshow.skip()  (planned)
+```
+
+The slideshow and `floppy_loader.py` communicate only through the lock file: floppy_loader creates it on start and deletes it on exit; the slideshow polls for its presence.
+
+## Slideshow loop (`slideshow.py`)
+
+- Runs forever
+- Each iteration:
+  - If lock file is present → draw loading screen (once) and sleep 5s
+  - Else → load next image from shared folder, display it, sleep 60s
+  - If shared folder is empty → draw the default image
+- Skips redrawing the same default/loading screen on consecutive iterations to spare e-ink refreshes
+
+## Floppy loader script (`floppy_loader.py`)
+
+A standalone executable script. Triggered on demand, exits when done.
+
+- Create lock file
+- Mount the floppy disk via `udisksctl` (no sudo, allowed by polkit rule)
+- Delete old images from shared folder
+- Copy new JPEG images from the floppy
+- Unmount the floppy
+- Delete lock file
+- Exit
+
+If any critical step fails (mount, copy), it cleans up (unmounts if needed, removes lock) and exits.
 
 ## Display states
 
-**Default image** — shown when shared folder is empty
-**Loading screen** — static image shown while lock file is present
-**Slideshow** — cycles through all images in shared folder, 60 seconds per image
+- **Default image** — a synthwave-style scene drawn with PIL (yellow sun with horizontal bars, red perspective grid, white horizon line on black). Shown when the shared folder is empty.
+- **Loading screen** — "Loading..." text, shown while the lock file is present.
+- **Slideshow** — cycles through all images in the shared folder, 60 seconds per image.
 
 ## Buttons
 
-The Inky e-ink screen has 4 buttons on it. We'll use 2 of them:
+The Inky has 4 buttons, A–D. We use 2:
 
-- **Button A** — trigger floppy load
-- **Button B** — skip to next image manually
+- **Button A** — trigger floppy load (spawns `floppy_loader.py`, ignored if a load is already in progress)
+- **Button B** — skip to the next image (planned, not yet implemented)

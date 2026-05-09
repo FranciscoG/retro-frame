@@ -2,8 +2,6 @@
 
 from pathlib import Path
 import time
-from tkinter import font
-from turtle import right
 import constants
 import utils
 from PIL import Image, ImageDraw, ImageFont
@@ -13,6 +11,7 @@ from inky.auto import auto
 inky = auto()
 default_image_shown = False
 
+# Colors available in the Inky Impression palette:
 # print([a for a in dir(inky) if a.isupper()])
 # ['BLACK', 'BLUE', 'DESATURATED_PALETTE', 'GREEN', 'HEIGHT', 'RED', 'SATURATED_PALETTE', 'WHITE', 'WIDTH', 'YELLOW']
 
@@ -117,6 +116,7 @@ current_image = -1
 def get_next_image():
     global current_image
     global total_images
+    global default_image_shown
     current_image = current_image + 1
 
     # need to refresh the image list just in case
@@ -131,7 +131,6 @@ def get_next_image():
         draw_default_image()
         return
 
-    global default_image_shown
     default_image_shown = False
 
     if current_image >= total_images:
@@ -140,16 +139,24 @@ def get_next_image():
     # get current image
     load_image(image_list[current_image])
 
+current_interval = constants.DEFAULT_INTERVAL
 
-# Runs forever on a loop
-# - Check for lock file
-#   - if present, sleep 5 seconds and check again
-#   - else:
-#     - Load next image from shared folder
-#     - Display it on the Inky Impression
-#     - Wait 60 seconds
-#     - Loop back to next image
-#     - If shared folder is empty, display default image
+def load_config():
+    global current_interval
+    if Path(constants.CONFIG_PATH).exists():
+        try:
+            with open(constants.CONFIG_PATH, "r") as f:
+                content = f.read().strip()
+                interval = int(content)
+                if interval == current_interval:
+                    return
+                if interval >= 60:
+                    print(f"Loaded new interval from config: {interval} seconds")
+                    current_interval = interval
+                else:
+                    print(f"Ignoring interval: {interval} (must be >= 60)")
+        except Exception as e:
+            print(f"Error loading config file: {e}")
 
 
 def main_loop():
@@ -164,7 +171,8 @@ def main_loop():
         else:
             get_next_image()
             loading_image_displayed = False
-            time.sleep(60)
+            load_config()
+            time.sleep(current_interval)
 
 
 def start_slideshow():
