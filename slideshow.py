@@ -13,7 +13,8 @@ from inky.auto import auto
 inky = auto()
 default_image_shown = False
 
-print([a for a in dir(inky) if a.isupper()])
+# print([a for a in dir(inky) if a.isupper()])
+# ['BLACK', 'BLUE', 'DESATURATED_PALETTE', 'GREEN', 'HEIGHT', 'RED', 'SATURATED_PALETTE', 'WHITE', 'WIDTH', 'YELLOW']
 
 def draw_default_image():
     global default_image_shown
@@ -52,12 +53,17 @@ def draw_default_image():
     # Wipe everything below the horizon so the sun's lower edge doesn't bleed into the grid
     draw.rectangle((0, horizon_y, width, height), fill=inky.BLACK)
 
-    # Perspective grid: vertical lines converge to a vanishing point at the horizon center
-    vanish_x = width // 2
-    vertical_count = 13
-    spacing = width // (vertical_count - 1)
-    for i in range(-3, vertical_count + 3):
-        draw.line((vanish_x, horizon_y, i * spacing, height), fill=inky.RED, width=1)
+    # Vertical grid lines fan out from a narrow band on the horizon to the full bottom width
+    vertical_count = 17
+    top_band = int(width * 0.35)
+    bottom_band = int(width * 1.4)
+    top_left = (width - top_band) // 2
+    bottom_left = (width - bottom_band) // 2
+    for i in range(vertical_count):
+        t = i / (vertical_count - 1)
+        top_x = top_left + int(t * top_band)
+        bottom_x = bottom_left + int(t * bottom_band)
+        draw.line((top_x, horizon_y, bottom_x, height), fill=inky.RED, width=1)
 
     # Horizontal grid lines, spaced by a power curve so they tighten near the horizon
     horizontal_count = 8
