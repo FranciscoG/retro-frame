@@ -12,7 +12,7 @@ inky = auto()
 
 
 def default_image():
-    inky_display = auto(ask_user=True, verbose=True)
+    inky_display = auto()
 
     # Create new PIL image with a white background
     image = Image.new(
@@ -93,9 +93,5 @@ def main_loop():
             time.sleep(60)
 
 
-try:
+def start_slideshow():
     main_loop()
-except KeyboardInterrupt:
-    print("Exiting...")
-except Exception as e:
-    print(f"Slideshow Error: {e}")

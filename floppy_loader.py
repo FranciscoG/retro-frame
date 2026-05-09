@@ -6,7 +6,6 @@ import subprocess
 import glob
 from pathlib import Path
 import time
-import buttons
 import constants
 import utils
 
@@ -89,13 +88,13 @@ def delete_lock_file():
     print("Failed to delete lock file after 3 attempts. Please check manually.")
 
 
-def handleButtonA():
-    print("-- Handling Button A Press --")
+def loadImagesFromDisk():
+    print("-- Begin loading images from disk --")
 
     print("Creating lock file")
     with open(constants.LOCK_FILE, "w") as f:
         f.write("locked")
-
+    
     print("Mounting USB floppy drive")
     mount_dir = mount_usb_floppy()
     if not mount_dir:
@@ -120,20 +119,9 @@ def handleButtonA():
     print("Cleaning up lock file")
     delete_lock_file()
 
-    print("-- Finished Handling Button A Press --")
+    print("-- Finished loading images from disk --")
 
 
-def onButtonPress(label):
-    print(f"Button {label} was pressed!")
-    if label == "A":
-        handleButtonA()
-
-
-# Start with a clean slate by ensuring the lock file is removed before we begin
-delete_lock_file()
-
-print("Waiting for button presses...")
-try:
-    buttons.begin(onButtonPress)
-except KeyboardInterrupt:
-    print("\nShutting down...")
+if __name__ == "__main__":
+    delete_lock_file()
+    loadImagesFromDisk()
